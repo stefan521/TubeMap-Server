@@ -17,7 +17,7 @@ class MyWebSocketActor(requester: ActorRef) extends Actor {
   def receive: Receive = {
 
     case msg: String =>
-      replyAndScheduleNextUpdate(s"First Message in reply to:      ${msg}")
+      replyAndScheduleNextUpdate(s"First Message in reply to:   ${msg}")
 
     case SendUpdate =>
       replyAndScheduleNextUpdate(s"Subsequent Message.")
@@ -26,13 +26,12 @@ class MyWebSocketActor(requester: ActorRef) extends Actor {
   protected def replyAndScheduleNextUpdate(message: String): Unit = {
     requester ! message
 
-    context.system.scheduler.scheduleOnce(10.seconds) {
+    context.system.scheduler.scheduleOnce(5.seconds) {
       self ! MyWebSocketActor.SendUpdate
     }
   }
 
   override def postStop(): Unit = {
-    println("\n\n     @@@ Actor shut down @@@  \n\n")
-    // this is where we do cleanup
+    // this is where we do cleanup when the connection is closed (can send PoisonPill to the actor to close it)
   }
 }

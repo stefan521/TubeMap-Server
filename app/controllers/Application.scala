@@ -22,16 +22,8 @@ class Application @Inject()(
   val controllerComponents: ControllerComponents
 )(implicit system: ActorSystem, mat: Materializer) extends BaseController {
 
-  private val unifiedApiKey = config.get[String]("unified.api_key")
   private val logger = Logger(this.getClass).logger
 
-  /**
-   * Create an Action to render an HTML page.
-   *
-   * The configuration in the `routes` file means that this method
-   * will be called when the application receives a `GET` request with
-   * a path of `/`.
-   */
   def index(): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] =>
       Ok(views.html.index())
@@ -39,40 +31,28 @@ class Application @Inject()(
 
   def status(): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] => {
-      config.entrySet.foreach(t => println(t))
-
-      println {
-        config.getOptional[String]("akka.http.server.idle-timeout")
-      }
-
-      println {
-        config.getOptional[String]("akka.http.client.idle-timeout")
-      }
-
-      println {
-        config.getOptional[String]("akka.http.server.websocket.periodic-keep-alive-max-idle")
-      }
-
-      import ConfigLoader.configLoader
-
-      println {
-        config.getOptional("akka.http")
-      }
-
-      Ok("haha it works pretty well.")
+      Ok("Works.")
     }}
 
   def socket = WebSocket.acceptOrResult[String, String] { request =>
     Future.successful {
-      Right(ActorFlow.actorRef { out =>
-        MyWebSocketActor.props(out)
-      })
+      for {
+        apiKey <- getApiKeyOrFailure()
+        flow <- Right(ActorFlow.actorRef { out => MyWebSocketActor.props(out) })
+      } yield flow
     }
   }
 
-//  def socket = WebSocket.accept[String, String] { request =>
-//    ActorFlow.actorRef { out =>
-//      MyWebSocketActor.props(out)
-//    }
-//  }
+  private def getApiKey(): Option[String] = config.getOptional[String]("unified.api_key")
+
+  private def getApiKeyOrFailure(): Either[Status, String] = {
+    getApiKey() match {
+      case None =>
+        logger.warn("The environment var TUBE_API_KEY does not contain an Unified API key.")
+        Left(InternalServerError)
+
+      case Some(key) =>
+        Right(key)
+    }
+  }
 }
