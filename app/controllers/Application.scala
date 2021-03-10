@@ -8,6 +8,7 @@ import javax.inject._
 import play.api._
 import play.api.libs.streams.ActorFlow
 import play.api.mvc._
+import validation.ConfigValidation._
 
 import scala.concurrent.Future
 
@@ -18,7 +19,6 @@ import scala.concurrent.Future
  */
 @Singleton
 class Application @Inject()(
-  config: Configuration,
   val controllerComponents: ControllerComponents
 )(implicit system: ActorSystem, mat: Materializer) extends BaseController {
 
@@ -36,23 +36,19 @@ class Application @Inject()(
 
   def socket = WebSocket.acceptOrResult[String, String] { request =>
     Future.successful {
-      for {
-        apiKey <- getApiKeyOrFailure()
+      val result = for {
+        _ <- getApiKeyOrThrowable(system.settings.config)
         flow <- Right(ActorFlow.actorRef { out => MyWebSocketActor.props(out) })
       } yield flow
-    }
-  }
 
-  private def getApiKey(): Option[String] = config.getOptional[String]("unified.api_key")
+      result match {
+        case Left(exception) =>
+          logger.warn(s"Exception during WebSocket connection. Exception Message: ${exception.getMessage}")
+          Left(InternalServerError)
 
-  private def getApiKeyOrFailure(): Either[Status, String] = {
-    getApiKey() match {
-      case None =>
-        logger.warn("The environment var TUBE_API_KEY does not contain an Unified API key.")
-        Left(InternalServerError)
-
-      case Some(key) =>
-        Right(key)
+        case Right(flow) =>
+          Right(flow)
+      }
     }
   }
 }
