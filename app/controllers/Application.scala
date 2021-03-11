@@ -1,6 +1,6 @@
 package controllers
 
-import actors.MyWebSocketActor
+import actors.StatusEmitterActor
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 
@@ -24,6 +24,13 @@ class Application @Inject()(
 
   private val logger = Logger(this.getClass).logger
 
+//  system.actorOf(
+//    ClusterSingletonManager.props(
+//      singletonProps = Props(classOf[Consumer], queue, testActor),
+//      terminationMessage = End,
+//      settings = ClusterSingletonManagerSettings(system).withRole("worker")),
+//    name = "consumer")
+
   def index(): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] =>
       Ok(views.html.index())
@@ -36,19 +43,7 @@ class Application @Inject()(
 
   def socket = WebSocket.acceptOrResult[String, String] { request =>
     Future.successful {
-      val result = for {
-        _ <- getApiKeyOrThrowable(system.settings.config)
-        flow <- Right(ActorFlow.actorRef { out => MyWebSocketActor.props(out) })
-      } yield flow
-
-      result match {
-        case Left(exception) =>
-          logger.warn(s"Exception during WebSocket connection. Exception Message: ${exception.getMessage}")
-          Left(InternalServerError)
-
-        case Right(flow) =>
-          Right(flow)
-      }
+       Right(ActorFlow.actorRef { out =>StatusEmitterActor.props(out)})
     }
   }
 }

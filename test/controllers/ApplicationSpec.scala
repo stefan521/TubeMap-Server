@@ -15,15 +15,6 @@ class ApplicationSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
 
   "HomeController GET" should {
 
-    "render the index page from a new instance of controller" in {
-      val controller = new Application(stubControllerComponents())
-      val home = controller.index().apply(FakeRequest(GET, "/"))
-
-      status(home) mustBe OK
-      contentType(home) mustBe Some("text/html")
-      contentAsString(home) must include ("Welcome to Play")
-    }
-
     "render the index page from the application" in {
       val controller = inject[Application]
       val home = controller.index().apply(FakeRequest(GET, "/"))

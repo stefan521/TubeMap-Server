@@ -1,24 +1,22 @@
 package actors
 
-import actors.MyWebSocketActor.SendUpdate
+import actors.StatusEmitterActor.SendUpdate
 import akka.actor._
-import validation.ConfigValidation.getApiKeyOrThrowable
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
 
-object MyWebSocketActor {
-  def props(out: ActorRef) = Props(new MyWebSocketActor(out))
+object StatusEmitterActor {
+  def props(out: ActorRef) = Props(new StatusEmitterActor(out))
 
   case object SendUpdate
 }
 
-class MyWebSocketActor(requester: ActorRef) extends Actor {
+class StatusEmitterActor(requester: ActorRef) extends Actor {
 
   def receive: Receive = {
 
     case msg: String =>
-//      println(s" ACTOR SAYS KEY IS: ${getApiKeyOrThrowable(context.system.settings.config)} ")
       replyAndScheduleNextUpdate(s"First Message in reply to:   ${msg}")
 
     case SendUpdate =>
@@ -29,7 +27,7 @@ class MyWebSocketActor(requester: ActorRef) extends Actor {
     requester ! message
 
     context.system.scheduler.scheduleOnce(5.seconds) {
-      self ! MyWebSocketActor.SendUpdate
+      self ! StatusEmitterActor.SendUpdate
     }
   }
 

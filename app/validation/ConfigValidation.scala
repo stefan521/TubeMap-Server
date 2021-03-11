@@ -7,6 +7,9 @@ import scala.util.{Failure, Success, Try}
 
 object ConfigValidation {
 
+  /*
+    PRIVATE
+   */
   private val configPathForApiKey = "unified.api_key"
 
   private val noApiKeyError = new IllegalStateException(
@@ -16,6 +19,9 @@ object ConfigValidation {
       |""".stripMargin
   )
 
+  /*
+    PUBLIC
+   */
   def getApiKeyOrThrowable(config: Config): Either[Throwable, String] =
     if (config.hasPath(configPathForApiKey))
       Try(config.getValue(configPathForApiKey)) match {
