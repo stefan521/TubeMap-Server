@@ -1,40 +1,23 @@
 package controllers
 
-import actors.StatusEmitterActor
-import akka.actor.{ActorSystem, Props}
+import core.{StatusFetcher, StatusEmitterActor}
+import akka.actor.ActorSystem
 import akka.stream.Materializer
-import akka.cluster.singleton.ClusterSingletonManager
 
 import javax.inject._
 import play.api._
 import play.api.libs.streams.ActorFlow
 import play.api.mvc._
-import validation.ConfigValidation._
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.concurrent.duration.DurationInt
 
 
-/**
- * This controller creates an `Action` to handle HTTP requests to the
- * application's home page.
- */
 @Singleton
 class Application @Inject()(
   val controllerComponents: ControllerComponents
 )(implicit system: ActorSystem, mat: Materializer) extends BaseController {
-
-  private val logger = Logger(this.getClass).logger
-
- system.actorOf(
-   ClusterSingletonManager.props(
-     singletonProps = Props(classOf[Consumer], queue, testActor),
-     terminationMessage = End,
-     settings = ClusterSingletonManagerSettings(system)
-    ),
-    name = "fetchet-manager"
-  )
-
-  println(kka.cluster.singleton.ClusterSingletonManager)
 
   def index(): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] =>
@@ -48,7 +31,13 @@ class Application @Inject()(
 
   def socket = WebSocket.acceptOrResult[String, String] { request =>
     Future.successful {
-       Right(ActorFlow.actorRef { out => StatusEmitterActor.props(out)})
+       Right(ActorFlow.actorRef { out => StatusEmitterActor.props(out) })
     }
+  }
+
+  private val logger = Logger(this.getClass).logger
+
+  private val updateStatusTask = system.scheduler.scheduleAtFixedRate(0.second, 5.second) {
+    () => StatusFetcher.fetchStatus(system)
   }
 }

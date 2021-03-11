@@ -1,6 +1,6 @@
-package actors
+package core
 
-import actors.StatusEmitterActor.SendUpdate
+import core.StatusEmitterActor.SendUpdate
 import akka.actor._
 
 import scala.concurrent.ExecutionContext.Implicits.global

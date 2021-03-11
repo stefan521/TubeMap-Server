@@ -10,8 +10,9 @@ scalaVersion := "2.13.3"
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test
 
-val AkkaVersion = "2.6.10"
-libraryDependencies += "com.typesafe.akka" %% "akka-cluster-tools" % AkkaVersion
+val AkkaHttpVersion = "10.2.4"
+libraryDependencies += "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion
+
 
 /*
   PlayKeys.devSettings are necessary because in dev mode the configuration is ignored:
