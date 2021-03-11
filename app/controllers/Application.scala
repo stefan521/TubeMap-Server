@@ -1,18 +1,19 @@
 package controllers
 
-import core.{StatusFetcher, StatusEmitterActor}
-import akka.actor.ActorSystem
+import akka.actor.Actor.Receive
+import core.{StatusEmitterActor, StatusFetcher}
+import akka.actor.{Actor, ActorSystem, Props}
 import akka.stream.Materializer
+import model.{Overground, Tube}
 
 import javax.inject._
 import play.api._
+import play.api.libs.json.JsValue
 import play.api.libs.streams.ActorFlow
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
-
 
 @Singleton
 class Application @Inject()(
@@ -24,20 +25,15 @@ class Application @Inject()(
       Ok(views.html.index())
     }
 
-  def status(): Action[AnyContent] =
-    Action { implicit request: Request[AnyContent] => {
-      Ok("Works.")
-    }}
-
-  def socket = WebSocket.acceptOrResult[String, String] { request =>
-    Future.successful {
-       Right(ActorFlow.actorRef { out => StatusEmitterActor.props(out) })
+  def socket = WebSocket.accept[JsValue, JsValue] { requestHeader =>
+    ActorFlow.actorRef { actorRef =>
+      StatusEmitterActor.props(actorRef)
     }
   }
 
   private val logger = Logger(this.getClass).logger
 
-  private val updateStatusTask = system.scheduler.scheduleAtFixedRate(0.second, 5.second) {
-    () => StatusFetcher.fetchStatus(system)
-  }
+//  private val updateStatusTask = system.scheduler.scheduleAtFixedRate(0.second, 10.second) {
+//    () => StatusFetcher.fetchStatus
+//  }
 }

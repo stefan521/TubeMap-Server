@@ -2,6 +2,7 @@ package core
 
 import core.StatusEmitterActor.SendUpdate
 import akka.actor._
+import play.api.libs.json.{JsValue, Json}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
@@ -12,26 +13,39 @@ object StatusEmitterActor {
   case object SendUpdate
 }
 
-class StatusEmitterActor(requester: ActorRef) extends Actor {
+class StatusEmitterActor(clientActorRef: ActorRef) extends Actor {
 
-  def receive: Receive = {
+  import model.JsonWrites._
 
-    case msg: String =>
-      replyAndScheduleNextUpdate(s"First Message in reply to:   ${msg}")
+  protected val logger = play.api.Logger(getClass)
 
-    case SendUpdate =>
-      replyAndScheduleNextUpdate(s"Subsequent Message.")
-  }
+  protected def replyWithStatusUpdates(): Unit = {
+    StatusFetcher.fetchStatus(context.system) map {
+      case Right(value) =>
+        clientActorRef ! Json.toJson(value)
 
-  protected def replyAndScheduleNextUpdate(message: String): Unit = {
-    requester ! message
-
-    context.system.scheduler.scheduleOnce(5.seconds) {
-      self ! StatusEmitterActor.SendUpdate
+      case Left(err) =>
+        logger.error(err.getMessage)
+        clientActorRef ! Json.parse(s"""{"body": "An error :D"}""")
     }
   }
 
-  override def postStop(): Unit = {
-    // this is where we do cleanup when the connection is closed (can send PoisonPill to the actor to close it)
+  protected def replyWithFullStatus(): Unit = {
+    replyWithStatusUpdates()
+  }
+
+  protected def scheduleNextUpdate(): Cancellable =
+    context.system.scheduler.scheduleOnce(5.seconds) {
+      self ! StatusEmitterActor.SendUpdate
+    }
+
+  override def receive: Receive = {
+    case message: JsValue =>
+      replyWithFullStatus()
+      scheduleNextUpdate()
+
+    case SendUpdate =>
+      replyWithStatusUpdates()
+      scheduleNextUpdate()
   }
 }
