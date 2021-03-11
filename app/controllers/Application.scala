@@ -1,8 +1,9 @@
 package controllers
 
 import actors.StatusEmitterActor
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, Props}
 import akka.stream.Materializer
+import akka.cluster.singleton.ClusterSingletonManager
 
 import javax.inject._
 import play.api._
@@ -24,12 +25,16 @@ class Application @Inject()(
 
   private val logger = Logger(this.getClass).logger
 
-//  system.actorOf(
-//    ClusterSingletonManager.props(
-//      singletonProps = Props(classOf[Consumer], queue, testActor),
-//      terminationMessage = End,
-//      settings = ClusterSingletonManagerSettings(system).withRole("worker")),
-//    name = "consumer")
+ system.actorOf(
+   ClusterSingletonManager.props(
+     singletonProps = Props(classOf[Consumer], queue, testActor),
+     terminationMessage = End,
+     settings = ClusterSingletonManagerSettings(system)
+    ),
+    name = "fetchet-manager"
+  )
+
+  println(kka.cluster.singleton.ClusterSingletonManager)
 
   def index(): Action[AnyContent] =
     Action { implicit request: Request[AnyContent] =>
@@ -43,7 +48,7 @@ class Application @Inject()(
 
   def socket = WebSocket.acceptOrResult[String, String] { request =>
     Future.successful {
-       Right(ActorFlow.actorRef { out =>StatusEmitterActor.props(out)})
+       Right(ActorFlow.actorRef { out => StatusEmitterActor.props(out)})
     }
   }
 }

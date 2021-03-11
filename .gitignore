@@ -308,3 +308,24 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/sbt,scala,java,intellij,visualstudiocode,git,windows,linux,playframework,webstorm
+
+
+# Created by https://www.toptal.com/developers/gitignore/api/bloop,metals,vscode
+# Edit at https://www.toptal.com/developers/gitignore?templates=bloop,metals,vscode
+
+### Bloop ###
+.bloop/
+
+### Metals ###
+.metals/
+project/**/metals.sbt
+
+### vscode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# End of https://www.toptal.com/developers/gitignore/api/bloop,metals,vscode
