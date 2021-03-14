@@ -7,6 +7,7 @@ import play.api.libs.json.{JsValue, Json}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
 
+
 object StatusEmitterActor {
   def props(out: ActorRef) = Props(new StatusEmitterActor(out))
 
@@ -20,14 +21,15 @@ class StatusEmitterActor(clientActorRef: ActorRef) extends Actor {
   protected val logger = play.api.Logger(getClass)
 
   protected def replyWithStatusUpdates(): Unit = {
-    StatusFetcher.fetchStatus(context.system) map {
-      case Right(value) =>
-        clientActorRef ! Json.toJson(value)
-
-      case Left(err) =>
-        logger.error(err.getMessage)
-        clientActorRef ! Json.parse(s"""{"body": "An error :D"}""")
-    }
+    clientActorRef ! Json.toJson("")
+//    StatusFetcher.fetchStatus(context.system) map {
+//      case Right(value) =>
+//        clientActorRef ! Json.toJson("")
+//
+//      case Left(err) =>
+//        logger.error(err.toString)
+//        clientActorRef ! Json.parse(s"""{"body": "An error :D"}""")
+//    }
   }
 
   protected def replyWithFullStatus(): Unit = {

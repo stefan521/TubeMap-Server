@@ -20,7 +20,11 @@ libraryDependencies ++= Seq(
 
   // Joda
   "joda-time" % "joda-time" % "2.10.10",
-  "com.typesafe.play" %% "play-json-joda" % "2.10.0-RC2"
+  "com.typesafe.play" %% "play-json-joda" % "2.10.0-RC2",
+
+  "org.mongodb" % "mongo-java-driver" % "3.12.8",
+
+  "org.typelevel" %% "cats-core" % "2.1.1",
 )
 
 

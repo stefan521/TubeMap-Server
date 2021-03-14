@@ -1,7 +1,7 @@
 package model
 
 import org.joda.time.DateTime
-import play.api.libs.json.{JodaReads, JodaWrites, Json}
+import play.api.libs.json.{JodaReads, JodaWrites, Json, OWrites, Reads, Writes}
 
 
 /* Mode */
@@ -34,21 +34,25 @@ case class Line(
   lineStatuses: List[LineStatus],
 )
 
+case class TubeStatus(lines: List[Line])
+
 /* Plumbing */
 object Constant {
   val dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
 }
 
 object JsonReads {
-  implicit val dateReads = JodaReads.jodaDateReads(Constant.dateFormat)
-  implicit val validityPeriodReads = Json.reads[ValidityPeriod]
-  implicit val lineStatusReads = Json.reads[LineStatus]
-  implicit val lineReads = Json.reads[Line]
+  implicit val dateReads: Reads[DateTime]                 = JodaReads.jodaDateReads(Constant.dateFormat)
+  implicit val validityPeriodReads: Reads[ValidityPeriod] = Json.reads[ValidityPeriod]
+  implicit val lineStatusReads: Reads[LineStatus]         = Json.reads[LineStatus]
+  implicit val lineReads: Reads[Line]                     = Json.reads[Line]
+  implicit val tubeStatusReads: Reads[TubeStatus]         = Json.reads[TubeStatus]
 }
 
 object JsonWrites {
-  implicit val dateWrites = JodaWrites.jodaDateWrites(Constant.dateFormat)
-  implicit val validityPeriodWrites = Json.writes[ValidityPeriod]
-  implicit val lineStatusWrites = Json.writes[LineStatus]
-  implicit val lineWrites = Json.writes[Line]
+  implicit val dateWrites: Writes[DateTime]                 = JodaWrites.jodaDateWrites(Constant.dateFormat)
+  implicit val validityPeriodWrites: Writes[ValidityPeriod] = Json.writes[ValidityPeriod]
+  implicit val lineStatusWrites: Writes[LineStatus]         = Json.writes[LineStatus]
+  implicit val lineWrites: Writes[Line]                     = Json.writes[Line]
+  implicit val tubeStatusWrites: Writes[TubeStatus]         = Json.writes[TubeStatus]
 }
