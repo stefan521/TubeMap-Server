@@ -15,3 +15,11 @@ A server that provides live data about the tube status in London.
 Note: If you are on Windows and you see strange logging being produced, then try to run this instead:
 
 ```sbt --no-colors run```
+
+If you prefer to run the server using Docker then run these commands at the root of the project.
+
+```sbt dist```
+
+```set -x && unzip -d svc target/universal/*-1.0-SNAPSHOT.zip && mv svc/*/* svc/ && rm svc/bin/*.bat && mv svc/bin/* svc/bin/start```
+
+```docker build -t tube-server .```

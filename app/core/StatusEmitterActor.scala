@@ -2,6 +2,7 @@ package core
 
 import core.StatusEmitterActor.SendUpdate
 import akka.actor._
+import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -18,7 +19,7 @@ class StatusEmitterActor(clientActorRef: ActorRef) extends Actor {
 
   import model.JsonWrites._
 
-  protected val logger = play.api.Logger(getClass)
+  protected val logger: Logger = play.api.Logger(getClass)
 
   protected def replyWithStatusUpdates(): Unit = {
     clientActorRef ! Json.toJson("")

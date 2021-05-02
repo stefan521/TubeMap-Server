@@ -329,3 +329,5 @@ project/**/metals.sbt
 *.code-workspace
 
 # End of https://www.toptal.com/developers/gitignore/api/bloop,metals,vscode
+
+.svc/
