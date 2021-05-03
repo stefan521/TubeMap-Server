@@ -6,6 +6,7 @@ import controllers.Application.mongoDb
 import core.JsonParser.jsResultToEither
 import model.{AppError, CacheResult, CacheUnchanged, CacheUpdated, CollectionEmpty, NoCollection, TubeStatus}
 import org.bson.{BsonDocument, Document}
+import play.api.Logger
 import play.api.libs.json.Json
 
 import scala.util.{Failure, Success, Try}
@@ -17,7 +18,7 @@ object StatusCacher {
   import model.JsonWrites._
 
   val collectionName = "status"
-  val logger = play.api.Logger(getClass)
+  val logger: Logger = play.api.Logger(getClass)
 
   def cacheStatus(status: TubeStatus): Either[AppError, CacheResult] =
     for {

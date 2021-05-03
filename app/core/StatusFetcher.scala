@@ -12,21 +12,25 @@ import cats.instances.future._
 import core.JsonParser.jsResultToEither
 import core.StatusCacher.cacheStatus
 import model.{AppError, CacheResult, Line, TubeStatus}
+import validation.ValidatedConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 
 object StatusFetcher {
 
-  val request = HttpRequest(uri = "https://api.tfl.gov.uk/Line/Mode/tube/Status")
+  val request: HttpRequest = HttpRequest(uri = "https://api.tfl.gov.uk/Line/Mode/tube/Status")
 
   import model.JsonReads._
 
-  def fetchStatus(implicit system: ActorSystem): Future[Either[AppError, CacheResult]] =
+  def fetchStatus(config: ValidatedConfig)(implicit system: ActorSystem): Future[Either[AppError, CacheResult]] =
     (
       for {
         newStatus <- EitherT(getNewStatus(system))
         parsedStatus <- EitherT(Future.successful(TubeStatus(newStatus).asRight[AppError]))
+        _ = {
+            println(s" API KEY ${config.apiKey} ")
+        }
         cached <- EitherT(Future.successful(cacheStatus(parsedStatus)))
       } yield cached
     ).value
@@ -34,7 +38,7 @@ object StatusFetcher {
   private def parseTubeStatusJson(
     res: HttpResponse
   )(
-   implicit system: ActorSystem
+    implicit system: ActorSystem
   ): Future[Either[AppError, List[Line]]] =
     Unmarshal(res).to[String].map { data =>
       jsResultToEither[List[Line]](data)

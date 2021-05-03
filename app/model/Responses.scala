@@ -10,3 +10,5 @@ case class FailedToReadJson(badJson: String) extends AppError
 trait CacheResult
 case object CacheUnchanged extends CacheResult
 case object CacheUpdated extends CacheResult
+
+case class ApiKey(value: String)

@@ -330,4 +330,4 @@ project/**/metals.sbt
 
 # End of https://www.toptal.com/developers/gitignore/api/bloop,metals,vscode
 
-.svc/
+/svc/

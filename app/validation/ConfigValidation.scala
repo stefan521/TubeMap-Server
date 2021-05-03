@@ -1,39 +1,30 @@
 package validation
 
-import com.typesafe.config.Config
-
-import scala.util.{Failure, Success, Try}
-
+import cats.data.ValidatedNec
+import cats.implicits._
+import validation.Validation._
+import Constants._
 
 object ConfigValidation {
+  private def validateStringLengthAtLeast(length: Int, str: String): ValidatedNec[TooShort, String] =
+    if (str.length >= length) str.validNec
+    else TooShort(str, length).invalidNec
 
-  /*
-    PRIVATE
-   */
-  private val configPathForApiKey = "unified.api_key"
+  private def validateStringLengthAtMost(length: Int, str: String): ValidatedNec[TooLong, String] =
+    if (str.length <= length) str.validNec
+    else TooLong(str, length).invalidNec
 
-  private val noApiKeyError = new IllegalStateException(
-    """"
-      |There is no Tfl API key stored in the environment variable TUBE_API_KEY.
-      |You can obtain one at: https://api-portal.tfl.gov.uk/
-      |""".stripMargin
-  )
+  private def validateHexadecimalFormat(str: String): ValidatedNec[NoHexadecimalFormat, String] =
+    if (str.matches(hexadecimalRegex)) str.validNec
+    else NoHexadecimalFormat(str).invalidNec
 
-  /*
-    PUBLIC
-   */
-  def getApiKeyOrThrowable(config: Config): Either[Throwable, String] =
-    if (config.hasPath(configPathForApiKey))
-      Try(config.getValue(configPathForApiKey)) match {
+  private def validateStringNotNull(str: String): ValidatedNec[Validation.NoApiKeyProvided.type, String] =
+    if (str == null) NoApiKeyProvided.invalidNec
+    else str.validNec
 
-        case Failure(exception) =>
-          Left(exception)
-
-        case Success(value) =>
-          Right(value.render())
-      }
-    else
-      Left(noApiKeyError)
-
-  // TODO: validate this is a string and has a hexadecimal format at least 10 chars long and at most 50
+  def validateApiKey(value: String): ValidationResult[String] =
+    validateStringNotNull(value)
+      .combine(validateStringLengthAtLeast(minApiKeyLength, value))
+      .combine(validateHexadecimalFormat(value))
+      .combine(validateStringLengthAtMost(maxApiKeyLength, value))
 }
